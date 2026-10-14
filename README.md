@@ -5,7 +5,10 @@
 ![EvoSim Banner](https://img.shields.io/badge/Engine-60FPS_HTML5_Canvas-10b981?style=for-the-badge)
 ![AI Model](https://img.shields.io/badge/AI-Genetic_Neural_Networks-38bdf8?style=for-the-badge)
 ![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero-f43f5e?style=for-the-badge)
-![Platform](https://img.shields.io/badge/Platform-Web_/_GitHub_Pages-a855f7?style=for-the-badge)
+![Live Demo](https://img.shields.io/badge/Demo-Live_on_GitHub_Pages-a855f7?style=for-the-badge)
+
+🔗 **Live Interactive Demo:** [https://poojakpdoshi-cmd.github.io/evosim/](https://poojakpdoshi-cmd.github.io/evosim/)  
+📊 **Interactive Presentation Deck:** [https://poojakpdoshi-cmd.github.io/evosim/presentation.html](https://poojakpdoshi-cmd.github.io/evosim/presentation.html)
 
 ---
 
