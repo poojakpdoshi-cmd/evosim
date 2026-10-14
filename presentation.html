@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EvoSim — Neural Evolutionary Ecosystem</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* ===========================================
+       MANDATORY VIEWPORT BASE STYLES
+       =========================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-dark: #070a13;
+      --card-bg: rgba(22, 31, 48, 0.7);
+      --card-border: rgba(56, 189, 248, 0.15);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.25);
+      --cyan: #38bdf8;
+      --purple: #818cf8;
+      --amber: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      
+      --title-size: clamp(1.8rem, 4vw, 3.2rem);
+      --h2-size: clamp(1.2rem, 2.5vw, 1.8rem);
+      --h3-size: clamp(1rem, 1.8vw, 1.3rem);
+      --body-size: clamp(0.75rem, 1.2vw, 0.95rem);
+      --small-size: clamp(0.65rem, 0.9vw, 0.8rem);
+      --slide-padding: clamp(1rem, 3vw, 2.5rem);
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      user-select: none;
+    }
+
+    /* Ambient background grid */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 60%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Slider Container */
+    .slides-wrapper {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      padding: var(--slide-padding);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.97) translateY(12px);
+      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1;
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1) translateY(0);
+      z-index: 2;
+    }
+
+    .slide-inner {
+      width: 100%;
+      max-width: 1100px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Header component */
+    .slide-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: var(--small-size);
+      font-weight: 700;
+      color: var(--emerald);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .slide-tag::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 10px var(--emerald);
+    }
+
+    .slide-title {
+      font-size: var(--title-size);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: clamp(0.75rem, 1.8vh, 1.5rem);
+      background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Cards and Grids */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: clamp(0.8rem, 2vw, 1.4rem);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(56, 189, 248, 0.35);
+      transform: translateY(-2px);
+    }
+
+    .card h3 {
+      font-size: var(--h3-size);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card p, .card li {
+      font-size: var(--body-size);
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+    }
+
+    .card ul li::before {
+      content: '▹';
+      color: var(--cyan);
+      margin-right: 0.4rem;
+      font-family: monospace;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(0.75rem, 2vw, 1.25rem);
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(0.6rem, 1.5vw, 1rem);
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: clamp(0.5rem, 1.2vw, 0.9rem);
+    }
+
+    /* Slide 1 Hero Specifics */
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.8rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 999px;
+      font-family: 'Space Mono', monospace;
+      font-size: var(--small-size);
+      color: var(--emerald);
+      margin-bottom: 1rem;
+    }
+
+    .hero-title {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin-bottom: 0.8rem;
+    }
+
+    .hero-title span {
+      background: linear-gradient(135deg, var(--emerald) 0%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      font-size: clamp(0.9rem, 1.6vw, 1.2rem);
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 750px;
+      margin-bottom: clamp(1rem, 3vh, 2rem);
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .stat-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 0.7rem 1.2rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .stat-pill .label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--emerald);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .stat-pill .val {
+      font-size: var(--body-size);
+      font-weight: 700;
+      color: #ffffff;
+      margin-top: 0.15rem;
+    }
+
+    /* Navigation Controls */
+    .nav-bar {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.5rem 1rem;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--card-border);
+      border-radius: 999px;
+      backdrop-filter: blur(20px);
+      z-index: 100;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .slide-counter {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+    }
+
+    .dots-container {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .dot.active {
+      width: 20px;
+      border-radius: 4px;
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald-glow);
+    }
+
+    .keyboard-hint {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 0.3rem 0.6rem;
+      z-index: 100;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: 1fr;
+      }
+      .keyboard-hint {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="keyboard-hint">Keys: ← → or Space | F: Fullscreen</div>
+
+  <div class="slides-wrapper">
+
+    <!-- ================= SLIDE 1 ================= -->
+    <div class="slide active" data-slide="1">
+      <div class="slide-inner">
+        <div class="hero-badge">🧬 ARTIFICIAL LIFE & GENETIC AI</div>
+        <h1 class="hero-title">EvoSim<br><span>Neural Ecosystem</span></h1>
+        <p class="hero-desc">
+          A real-time biological sandbox in the browser where autonomous digital creatures with microscopic neural networks evolve survival instincts through natural selection — with zero hardcoded behavior.
+        </p>
+        <div class="hero-stats">
+          <div class="stat-pill">
+            <div class="label">AI Engine</div>
+            <div class="val">Genetic Neural Networks</div>
+          </div>
+          <div class="stat-pill">
+            <div class="label">Performance</div>
+            <div class="val">Client-Side 60 FPS Canvas</div>
+          </div>
+          <div class="stat-pill">
+            <div class="label">Selection</div>
+            <div class="val">Darwinian Survival of Fittest</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= SLIDE 2 ================= -->
+    <div class="slide" data-slide="2">
+      <div class="slide-inner">
+        <div class="slide-tag">Core Concept</div>
+        <h2 class="slide-title">A Living Digital Terrarium</h2>
+        <div class="grid-2">
+          <div class="card" style="border-left: 3px solid var(--cyan);">
+            <h3 style="color: var(--cyan);">🌿 The Ecosystem Sandbox</h3>
+            <p>Instead of scripting dumb bots with rigid <code>if-else</code> rules, EvoSim creates a miniature physics world with living stakes:</p>
+            <ul>
+              <li>Organisms swim through a 2D aquatic arena.</li>
+              <li>Every stroke of motion consumes biological energy.</li>
+              <li>Eating food replenishes energy and unlocks reproduction.</li>
+              <li>Energy hits zero? Death and permanent removal from the gene pool.</li>
+            </ul>
+          </div>
+          <div class="card" style="border-left: 3px solid var(--emerald);">
+            <h3 style="color: var(--emerald);">🧠 100% Unprogrammed Intelligence</h3>
+            <p><strong>Nobody teaches them how to eat.</strong></p>
+            <p style="margin-top: 0.5rem;">Generation 1 is born with totally randomized synaptic connections. Some spin in chaotic circles, others crash into perimeter walls. Survival is purely earned through generation-by-generation genetic mutation.</p>
+            <p style="margin-top: 0.5rem; color: var(--purple);">✨ Complex strategies like predator evasion and energy-conserving gliding emerge spontaneously!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= SLIDE 3 ================= -->
+    <div class="slide" data-slide="3">
+      <div class="slide-inner">
+        <div class="slide-tag">Technical Architecture</div>
+        <h2 class="slide-title">Anatomy of an Organism: Sensors, Brain & Motors</h2>
+        <div class="grid-3">
+          <div class="card" style="border-top: 3px solid var(--cyan);">
+            <h3 style="color: var(--cyan);">👁️ 1. Sensory Eyes</h3>
+            <ul>
+              <li>5-7 directional raycast whiskers</li>
+              <li>Nearest food distance & angle</li>
+              <li>Wall & obstacle proximity</li>
+              <li>Internal metabolic energy gauge</li>
+            </ul>
+          </div>
+          <div class="card" style="border-top: 3px solid var(--emerald);">
+            <h3 style="color: var(--emerald);">🧬 2. Neural Micro-Brain</h3>
+            <ul>
+              <li>Feed-Forward Neural Network</li>
+              <li>Input: 6 sensory readings</li>
+              <li>Hidden: 8 Tanh neurons</li>
+              <li>Output: 2 motor controls</li>
+              <li>DNA: Synaptic weight matrix</li>
+            </ul>
+          </div>
+          <div class="card" style="border-top: 3px solid var(--purple);">
+            <h3 style="color: var(--purple);">⚡ 3. Motor Muscles</h3>
+            <ul>
+              <li>Steering angle: Turn left / right</li>
+              <li>Forward thrust: Speed burst</li>
+              <li>Inertia, momentum & water drag</li>
+              <li>High speed = faster energy burn</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= SLIDE 4 ================= -->
+    <div class="slide" data-slide="4">
+      <div class="slide-inner">
+        <div class="slide-tag">Evolutionary Progression</div>
+        <h2 class="slide-title">From Pure Chaos to Super-Organisms</h2>
+        <div class="grid-4">
+          <div class="card">
+            <span style="font-family: monospace; font-size: 0.7rem; color: var(--amber);">MIN 0:00</span>
+            <h3 style="color: var(--amber); margin-top: 0.2rem;">Gen 1: Chaos</h3>
+            <p>Random brain weights. Organisms spin in place, slam walls, and 95% quickly starve.</p>
+          </div>
+          <div class="card">
+            <span style="font-family: monospace; font-size: 0.7rem; color: var(--cyan);">MIN 2:30</span>
+            <h3 style="color: var(--cyan); margin-top: 0.2rem;">Gen 10: Luck</h3>
+            <p>A few creatures accidentally swim forward, bump into food, and pass on mutated genes.</p>
+          </div>
+          <div class="card">
+            <span style="font-family: monospace; font-size: 0.7rem; color: var(--emerald);">MIN 6:00</span>
+            <h3 style="color: var(--emerald); margin-top: 0.2rem;">Gen 30: Hunters</h3>
+            <p>Sensors are now wired to steering. Creatures spot food, rotate directly toward it, and charge.</p>
+          </div>
+          <div class="card">
+            <span style="font-family: monospace; font-size: 0.7rem; color: var(--purple);">MIN 12:00+</span>
+            <h3 style="color: var(--purple); margin-top: 0.2rem;">Gen 60: Masters</h3>
+            <p>Energy conservation: Gliding at low energy, sharp braking at food, and avoiding dead-ends.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= SLIDE 5 ================= -->
+    <div class="slide" data-slide="5">
+      <div class="slide-inner">
+        <div class="slide-tag">Interactive Features</div>
+        <h2 class="slide-title">User Experience: The "God Mode" Sandbox</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3 style="color: var(--cyan);">🔬 Live Neural X-Ray</h3>
+            <p>Click any swimming organism to open an inspection HUD. Watch its neural nodes light up with firing impulses as sensory data triggers motor impulses.</p>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--amber);">🌪️ Climate Catastrophes</h3>
+            <p>Test Darwinian survival! Trigger an <em>Ice Age</em> (halves speed, doubles energy burn), a <em>Drought</em> (removes food), or a <em>Radiation Wave</em> (hyper-mutates DNA).</p>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--emerald);">📊 Real-Time Analytics</h3>
+            <p>Live telemetry graphs tracking average lifespan, swimming speed, metabolic efficiency, and population health across all active generations.</p>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--purple);">🧬 DNA Import / Export</h3>
+            <p>Download your smartest champion organism's brain weights as a JSON file. Share your specimen with friends or import rival species for an arena battle!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= SLIDE 6 ================= -->
+    <div class="slide" data-slide="6">
+      <div class="slide-inner">
+        <div class="slide-tag">Portfolio Value</div>
+        <h2 class="slide-title">Why EvoSim Stands Out on GitHub</h2>
+        <div class="grid-2">
+          <div class="card" style="border-left: 3px solid var(--cyan);">
+            <h3 style="color: var(--cyan);">⚡ Pure Engineering Excellence</h3>
+            <ul>
+              <li><strong>Zero Dependencies:</strong> 100% native Web Canvas & JS; zero cloud or GPU bills.</li>
+              <li><strong>Ultra Fast:</strong> Spatial partition grid allows 300+ creatures running at 60 FPS.</li>
+              <li><strong>Algorithmic Depth:</strong> Genuine feed-forward neural nets and genetic operators (crossover & mutation).</li>
+            </ul>
+          </div>
+          <div class="card" style="border-left: 3px solid var(--emerald);">
+            <h3 style="color: var(--emerald);">🌟 High Viral & Recruiter Appeal</h3>
+            <ul>
+              <li><strong>Not Another AI Wrapper:</strong> Shows real mathematical, algorithmic, and visual mastery.</li>
+              <li><strong>Instant Live Demo:</strong> 1-click GitHub Pages link that visitors can play with right in their browser.</li>
+              <li><strong>Endlessly Hypnotic:</strong> People love watching artificial evolution simulations unfold live!</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Navigation Bar -->
+  <div class="nav-bar">
+    <button class="nav-btn" id="prevBtn" title="Previous Slide">‹</button>
+    <div class="dots-container" id="dotsContainer"></div>
+    <span class="slide-counter" id="slideCounter">1 / 6</span>
+    <button class="nav-btn" id="nextBtn" title="Next Slide">›</button>
+  </div>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const slideCounter = document.getElementById('slideCounter');
+    const dotsContainer = document.getElementById('dotsContainer');
+
+    let currentSlide = 0;
+    const totalSlides = slides.length;
+
+    // Create Navigation Dots
+    slides.forEach((_, idx) => {
+      const dot = document.createElement('div');
+      dot.className = `dot ${idx === 0 ? 'active' : ''}`;
+      dot.addEventListener('click', () => goToSlide(idx));
+      dotsContainer.appendChild(dot);
+    });
+
+    const dots = document.querySelectorAll('.dot');
+
+    function updateSlide() {
+      slides.forEach((s, idx) => {
+        s.classList.toggle('active', idx === currentSlide);
+      });
+      dots.forEach((d, idx) => {
+        d.classList.toggle('active', idx === currentSlide);
+      });
+      slideCounter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    function goToSlide(idx) {
+      currentSlide = idx;
+      updateSlide();
+    }
+
+    // Keyboard Navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Space') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'f' || e.key === 'F') {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+    });
+
+    nextBtn.addEventListener('click', nextSlide);
+    prevBtn.addEventListener('click', prevSlide);
+  </script>
+</body>
+</html>

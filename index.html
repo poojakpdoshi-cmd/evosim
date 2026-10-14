@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EvoSim — Neural Evolutionary Ecosystem</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="top-nav">
+    <div class="brand-section">
+      <div class="brand-logo">🧬</div>
+      <div class="brand-name">EvoSim</div>
+      <span class="brand-badge">NEURAL ECOSYSTEM</span>
+    </div>
+
+    <!-- Live Telemetry Readouts -->
+    <div class="top-metrics">
+      <div class="metric-pill">
+        <span class="metric-label">Epoch</span>
+        <span class="metric-value highlight-cyan" id="topGen">GEN 1</span>
+      </div>
+      <div class="metric-pill">
+        <span class="metric-label">Herbivores</span>
+        <span class="metric-value highlight-green" id="topHerbs">0</span>
+      </div>
+      <div class="metric-pill">
+        <span class="metric-label">Carnivores</span>
+        <span class="metric-value highlight-red" id="topCarns">0</span>
+      </div>
+      <div class="metric-pill">
+        <span class="metric-label">Engine FPS</span>
+        <span class="metric-value" id="topFps">60</span>
+      </div>
+    </div>
+
+    <!-- Action Shortcuts -->
+    <div class="top-actions">
+      <a href="presentation.html" target="_blank" class="action-btn" title="Open Slide Deck">
+        <span>📊</span> Slides
+      </a>
+      <button class="action-btn primary" id="btnExportChampion" title="Export Champion Genome">
+        <span>🧬</span> Export DNA
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= MAIN WORKSPACE ================= -->
+  <main class="app-container">
+
+    <!-- LEFT CONTROL DECK -->
+    <aside class="left-sidebar">
+      
+      <!-- Time & Speed Controls -->
+      <section class="control-group">
+        <div class="panel-section-title">Engine Velocity</div>
+        <div class="btn-row">
+          <button class="sim-btn" id="btnPause"><span>⏸</span> Pause</button>
+          <button class="sim-btn speed-btn active" data-speed="1">1x Speed</button>
+        </div>
+        <div class="btn-row">
+          <button class="sim-btn speed-btn" data-speed="2">2x Warp</button>
+          <button class="sim-btn speed-btn" data-speed="5">5x Hyper</button>
+        </div>
+      </section>
+
+      <!-- God Mode Tools -->
+      <section class="control-group">
+        <div class="panel-section-title">God Interventions</div>
+        <button class="sim-btn" id="btnRainFood">
+          <span>🌿</span> Spawn 40x Food
+        </button>
+        <button class="sim-btn danger" id="btnSpawnPredator">
+          <span>🔴</span> Spawn Apex Predator
+        </button>
+        <button class="sim-btn" id="btnClearWalls">
+          <span>🧹</span> Clear Drawn Walls
+        </button>
+        <button class="sim-btn danger" id="btnResetWorld">
+          <span>🔄</span> Reset Ecosystem
+        </button>
+      </section>
+
+      <!-- Climatic Catastrophes -->
+      <section class="control-group">
+        <div class="panel-section-title">Climate Catastrophes</div>
+        <div class="disaster-grid">
+          <button class="disaster-btn" data-disaster="ice-age" title="Doubles kinetic movement energy cost">
+            <span>❄️</span>
+            <span>Ice Age</span>
+          </button>
+          <button class="disaster-btn" data-disaster="famine" title="Food ceases to naturally respawn">
+            <span>🏜️</span>
+            <span>Famine</span>
+          </button>
+          <button class="disaster-btn" data-disaster="radiation" title="Causes 4x hyper-mutations during reproduction">
+            <span>☢️</span>
+            <span>Radiation</span>
+          </button>
+          <button class="disaster-btn" data-disaster="normal" title="Restores baseline climate balance">
+            <span>☀️</span>
+            <span>Restore</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- DNA Storage & Import -->
+      <section class="control-group">
+        <div class="panel-section-title">Genetics Vault</div>
+        <label class="sim-btn" style="cursor: pointer; text-align: center;">
+          <span>📥</span> Import DNA JSON
+          <input type="file" id="fileImportDNA" accept=".json" style="display: none;">
+        </label>
+      </section>
+
+    </aside>
+
+    <!-- CENTER SIMULATION VIEWPORT -->
+    <section class="center-viewport">
+      <canvas id="simCanvas"></canvas>
+
+      <!-- Floating Canvas Indicators -->
+      <div class="floating-overlay">
+        <div class="status-badge">
+          <span class="status-dot pulse"></span>
+          <span>LIVE DARWINIAN EVOLUTION</span>
+        </div>
+      </div>
+
+      <!-- Quick Hint Overlay -->
+      <div class="help-tooltip">
+        <span><kbd>Click</kbd> Inspect Organism</span>
+        <span><kbd>Shift+Drag</kbd> Draw Barriers</span>
+        <span><kbd>Right-Click / F</kbd> Drop Food</span>
+        <span><kbd>Space</kbd> Pause</span>
+      </div>
+    </section>
+
+    <!-- RIGHT INSPECTOR & ANALYTICS -->
+    <aside class="right-sidebar">
+
+      <!-- Organism X-Ray HUD -->
+      <div class="panel-section-title">Organism X-Ray</div>
+      <div class="inspector-card" id="inspectorCard">
+        <div class="creature-header">
+          <span class="creature-id" id="creatureId">#1</span>
+          <span class="species-tag herbivore" id="speciesTag">herbivore</span>
+        </div>
+
+        <!-- Energy Meter -->
+        <div class="energy-meter">
+          <div class="slider-header">
+            <span>Energy Vitality</span>
+            <span id="energyVal">100%</span>
+          </div>
+          <div class="energy-bar-wrap">
+            <div class="energy-bar-fill" id="energyBarFill"></div>
+          </div>
+        </div>
+
+        <!-- Metric Grid -->
+        <div class="inspector-stats-grid">
+          <div class="stat-item">
+            <div class="lbl">AGE</div>
+            <div class="val" id="ageVal">0s</div>
+          </div>
+          <div class="stat-item">
+            <div class="lbl">LINEAGE</div>
+            <div class="val" id="genVal">Gen 1</div>
+          </div>
+          <div class="stat-item">
+            <div class="lbl">FOOD EATEN</div>
+            <div class="val" id="foodVal">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="lbl">OFFSPRING</div>
+            <div class="val" id="offspringVal">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Neural Brain Network Canvas -->
+      <div class="panel-section-title">Synaptic Activations</div>
+      <div class="brain-container">
+        <canvas id="brainCanvas"></canvas>
+      </div>
+
+      <!-- Population & Fitness Rolling Graph -->
+      <div class="panel-section-title">Population History</div>
+      <div class="chart-container">
+        <canvas id="chartCanvas"></canvas>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- Modular Scripts -->
+  <script src="src/neural.js"></script>
+  <script src="src/organism.js"></script>
+  <script src="src/world.js"></script>
+  <script src="src/chart.js"></script>
+  <script src="src/ui.js"></script>
+  <script src="src/main.js"></script>
+
+</body>
+</html>
